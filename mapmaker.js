@@ -43,6 +43,7 @@ drawShape({
 });
 
 mergeGroup({ path: [ tmpFolder ] });
+rename({ path: [ tmpFolder ], name: 'map1' });
 
 // TODO Rename the final layer to "makmaker1"
 // TODO Increment the "1" in the folder name if that layer already exists
@@ -56,18 +57,64 @@ mergeGroup({ path: [ tmpFolder ] });
 
 /**
  * path: An array of layer sets to traverse to find the one you want to merge
+ * name: 
+ */
+function rename(args) {
+    var path = getArg(args, 'path');
+    var name = getArg(args, 'name');
+
+    if (!path) {
+        throw 'A path must be provided to the rename method';
+    }
+
+    if (!path) {
+        throw 'A name must be provided to the rename method';
+    }
+
+    var layer = getLayer({ path: path });
+    layer.name = name;
+    return layer;
+}
+
+function getLayer(args) {
+    var path = getArg(args, 'path');
+
+    if (!path) {
+        throw 'A path must be provided to the getLayer method';
+    }
+
+    var layerSet = app.activeDocument;
+    for (var i = 0; i < path.length; i++) {
+        try {
+            try {
+                layerSet = layerSet.layerSets[path[i]];
+            } catch (err) {
+                layerSet = layerSet.artLayers[path[i]];
+            }
+        } catch (err) {
+            if (err.message.indexOf('No such element') >= 0) {
+                alert('getLayer could not find element: ' + path[i] + ' in path: ' + path);
+            } else {
+                alert('Error in getLayer: ' + err.message);
+                throw err;
+            }
+        }
+    }
+
+    return layerSet;
+}
+
+/**
+ * path: An array of layer sets to traverse to find the one you want to merge
  */
 function mergeGroup(args) {
-    var path = getArg(args, 'path', undefined);
+    var path = getArg(args, 'path');
 
     if (!path) {
         throw 'A path must be provided to the mergeGroup method';
     }
 
-    var layerSet = app.activeDocument;
-    for (var i = 0; i < path.length; i++) {
-        layerSet = layerSet.layerSets[path[i]];
-    }
+    var layerSet = getLayer({ path: path });
 
     layerSet.merge();
 }
