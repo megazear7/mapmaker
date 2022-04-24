@@ -43,17 +43,42 @@ drawShape({
 });
 
 mergeGroup({ path: [ tmpFolder ] });
-rename({ path: [ tmpFolder ], name: 'map1' });
+var nextMapNumber = findNextMapNumber();
+rename({ path: [ tmpFolder ], name: 'map' + nextMapNumber });
 
-// TODO Rename the final layer to "makmaker1"
-// TODO Increment the "1" in the folder name if that layer already exists
 // TODO Update the drawShape method to not add a fill
 // TODO Update the drawShape method to add a 1px border
 // TODO Implement the logic to create the map
+//      Create hexagonal grid
+//      Randomly move pixels a random direction by a bell curve distance
+//      Radnomly join random pixels
 
 /***********************************************/
 /***************** Functions *******************/
 /***********************************************/
+
+/**
+ * @returns The number of the next available map
+ */
+function findNextMapNumber() {
+    var i = 1;
+    var layer = getLayer({ path: [ 'map' + i ], quiet: true });
+    var max = 10;
+    
+    for (i = 1; i < max && layer; i++) {
+        layer = getLayer({ path: [ 'map' + i ], quiet: true });
+        if (!layer) {
+            break;
+        }
+    }
+
+    if (max === 1000) {
+        alert('All map numbers from 1 to 1000 are taken up so using "1"');
+        return 1;
+    }
+
+    return i;
+}
 
 /**
  * path: An array of layer sets to traverse to find the one you want to merge
@@ -78,6 +103,7 @@ function rename(args) {
 
 function getLayer(args) {
     var path = getArg(args, 'path');
+    var quiet = getArg(args, 'quiet', false);
 
     if (!path) {
         throw 'A path must be provided to the getLayer method';
@@ -93,7 +119,10 @@ function getLayer(args) {
             }
         } catch (err) {
             if (err.message.indexOf('No such element') >= 0) {
-                alert('getLayer could not find element: ' + path[i] + ' in path: ' + path);
+                if (!quiet) {
+                    alert('getLayer could not find element: ' + path[i] + ' in path: ' + path);
+                }
+                return undefined;
             } else {
                 alert('Error in getLayer: ' + err.message);
                 throw err;
