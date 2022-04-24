@@ -21,15 +21,6 @@ Object.keys = objKeysPolyfill();
 
 createNewLayerSet({ name: tmpFolder });
 
-drawShape();
-drawShape({
-    points: [
-        { x: 400, y: 400},
-        { x: 400, y: 600},
-        { x: 700, y: 600},
-        { x: 700, y: 400},
-    ]
-});
 drawShape({
     points: [
         { x: 300, y: 300},
@@ -38,16 +29,15 @@ drawShape({
         { x: 360, y: 400},
         { x: 310, y: 390},
     ],
-    xOffset: 500,
-    yOffset: 500
+    xOffset: 200,
+    yOffset: 200
 });
 
 mergeGroup({ path: [ tmpFolder ] });
 var nextMapNumber = findNextMapNumber();
 rename({ path: [ tmpFolder ], name: 'map' + nextMapNumber });
 
-// TODO Update the drawShape method to not add a fill
-// TODO Update the drawShape method to add a 1px border
+// TODO Update the Createshapepath.jsx file and make it reusable with parameters
 // TODO Implement the logic to create the map
 //      Create hexagonal grid
 //      Randomly move pixels a random direction by a bell curve distance
@@ -63,7 +53,7 @@ rename({ path: [ tmpFolder ], name: 'map' + nextMapNumber });
 function findNextMapNumber() {
     var i = 1;
     var layer = getLayer({ path: [ 'map' + i ], quiet: true });
-    var max = 10;
+    var max = 50;
     
     for (i = 1; i < max && layer; i++) {
         layer = getLayer({ path: [ 'map' + i ], quiet: true });
@@ -73,7 +63,7 @@ function findNextMapNumber() {
     }
 
     if (max === 1000) {
-        alert('All map numbers from 1 to 1000 are taken up so using "1"');
+        alert('All map numbers from 1 to ' + max + ' are taken up so using "1"');
         return 1;
     }
 
@@ -101,6 +91,9 @@ function rename(args) {
     return layer;
 }
 
+/**
+ * path: An array of layer sets to traverse to find the one you want to get
+ */
 function getLayer(args) {
     var path = getArg(args, 'path');
     var quiet = getArg(args, 'quiet', false);
@@ -235,9 +228,9 @@ function drawShape(args) {
     var desc89 = new ActionDescriptor();
     var desc90 = new ActionDescriptor();
     var desc91 = new ActionDescriptor();
-    desc91.putDouble(charIDToTypeID("Rd  "), 0.000000); // R
-    desc91.putDouble(charIDToTypeID("Grn "), 0.000000); // G
-    desc91.putDouble(charIDToTypeID("Bl  "), 0.000000); // B
+    desc91.putDouble(charIDToTypeID("Rd  "), 0); // R
+    desc91.putDouble(charIDToTypeID("Grn "), 0); // G
+    desc91.putDouble(charIDToTypeID("Bl  "), 0); // B
     var id481 = charIDToTypeID("RGBC");
     desc90.putObject(charIDToTypeID("Clr "), id481, desc91);
     desc89.putObject(charIDToTypeID("Type"), stringIDToTypeID("solidColorLayer"), desc90);
