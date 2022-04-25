@@ -99,13 +99,11 @@ function drawHexagonalGrid() {
             yend = (2 * l) + x - 2;
         }
         for (var y = ystart; y <= yend; y++) {
-            var xpos = Math.sqrt(3) * s * y
-            if (x % 2 !== 0) {
-                xpos = xpos - (s * (Math.sqrt(3)/2));
-            }
+            var xpos = Math.sqrt(3) * s * y;
+            xpos = xpos - ((x - xstart) * s * (Math.sqrt(3)/2));
             var point = {
                 x: xpos,
-                y: (3/2) * s * x
+                y: (3/2) * s * -x
             };
 
             // points[(x      ).toFixed(1) + '_' + (y      ).toFixed(1)] = hexPosA(point, s);
@@ -138,8 +136,8 @@ function drawHexagonalGrid() {
                 { x: point.x + squareSize, y: point.y + squareSize },
                 { x: point.x + squareSize, y: point.y }
             ],
-            xOffset: 300,
-            yOffset: 300
+            xOffset: 400,
+            yOffset: 600
         });
     }
 }
