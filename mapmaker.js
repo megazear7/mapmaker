@@ -21,20 +21,15 @@ Object.keys = objKeysPolyfill();
 /***********************************************/
 
 createNewLayerSet({ name: tmpFolder });
-
-
-//drawSingleHexagon();
-drawHexagonalGrid();
-
-//mergeGroup({ path: [ tmpFolder ] });
-//var nextMapNumber = findNextMapNumber();
-//rename({ path: [ tmpFolder ], name: 'map' + nextMapNumber });
+drawHexagonalGrid(toggles.sideLength, toggles.regionSideLength)
+mergeGroup({ path: [ tmpFolder ] });
+var nextMapNumber = findNextMapNumber();
+rename({ path: [ tmpFolder ], name: 'map' + nextMapNumber });
 
 // TODO Update the Createshapepath.jsx file and make it reusable with parameters
 // TODO Implement the logic to create the map
-//      Create hexagonal grid
 //      Randomly move pixels a random direction by a bell curve distance
-//      Radnomly join random pixels
+//      Randomly join random pixels
 
 /***********************************************/
 /***************** Functions *******************/
@@ -82,10 +77,10 @@ function hexPosF(point, s) {
     }
 }
 
-function drawHexagonalGrid() {
+function drawHexagonalGrid(sideLength, regionSideLength) {
     var points = {};
-    var l = toggles.sideLength;
-    var s = toggles.regionSideLength;
+    var l = sideLength;
+    var s = regionSideLength;
 
     var xstart = -(l-1);
     var xend = l-1;
@@ -106,18 +101,21 @@ function drawHexagonalGrid() {
                 y: (3/2) * s * -x
             };
 
-            // points[(x      ).toFixed(1) + '_' + (y      ).toFixed(1)] = hexPosA(point, s);
-            // points[(x + 0.5).toFixed(1) + '_' + (y + 0.5).toFixed(1)] = hexPosB(point, s);
-            // points[(x      ).toFixed(1) + '_' + (y +   1).toFixed(1)] = hexPosC(point, s);
-            // points[(x - 0.5).toFixed(1) + '_' + (y + 0.5).toFixed(1)] = hexPosD(point, s);
-            // points[(x -   1).toFixed(1) + '_' + (y      ).toFixed(1)] = hexPosE(point, s);
-            // points[(x - 0.5).toFixed(1) + '_' + (y - 0.5).toFixed(1)] = hexPosF(point, s);
-            points[x + '_' + y + '_a'] = hexPosA(point, s);
-            points[x + '_' + y + '_b'] = hexPosB(point, s);
-            points[x + '_' + y + '_c'] = hexPosC(point, s);
-            points[x + '_' + y + '_d'] = hexPosD(point, s);
-            points[x + '_' + y + '_e'] = hexPosE(point, s);
-            points[x + '_' + y + '_f'] = hexPosF(point, s);
+            // If you want to remove duplicate points, use this:
+            points[(x      ).toFixed(1) + '_' + (y      ).toFixed(1)] = hexPosA(point, s);
+            points[(x + 0.5).toFixed(1) + '_' + (y + 0.5).toFixed(1)] = hexPosB(point, s);
+            points[(x      ).toFixed(1) + '_' + (y +   1).toFixed(1)] = hexPosC(point, s);
+            points[(x - 0.5).toFixed(1) + '_' + (y + 0.5).toFixed(1)] = hexPosD(point, s);
+            points[(x -   1).toFixed(1) + '_' + (y      ).toFixed(1)] = hexPosE(point, s);
+            points[(x - 0.5).toFixed(1) + '_' + (y - 0.5).toFixed(1)] = hexPosF(point, s);
+            
+            // If you want duplicate points, use this:
+            // points[x + '_' + y + '_a'] = hexPosA(point, s);
+            // points[x + '_' + y + '_b'] = hexPosB(point, s);
+            // points[x + '_' + y + '_c'] = hexPosC(point, s);
+            // points[x + '_' + y + '_d'] = hexPosD(point, s);
+            // points[x + '_' + y + '_e'] = hexPosE(point, s);
+            // points[x + '_' + y + '_f'] = hexPosF(point, s);
         }
     }
 
