@@ -3,6 +3,7 @@
 /***********************************************/
 /*********** Configuration and Setup ***********/
 /***********************************************/
+$.evalFile(File($.fileName).parent + "/map-data.js");
 var tmpFolder = 'mapmakertmp';
 var lines = activeDocument.layerSets["Lines"];
 var spaces = activeDocument.layerSets["Spaces"];
@@ -26,174 +27,35 @@ mergeGroup({ path: [ tmpFolder ] });
 var nextMapNumber = findNextMapNumber();
 rename({ path: [ tmpFolder ], name: 'map' + nextMapNumber });
 
-// TODO Update the Createshapepath.jsx file and make it reusable with parameters
-// TODO Implement the logic to create the map
-//      Randomly move pixels a random direction by a bell curve distance
-//      Randomly join random pixels
-
 /***********************************************/
 /***************** Functions *******************/
 /***********************************************/
 
-function hexPosA(point, s) {
-    return {
-        x: point.x,
-        y: point.y
-    }
-}
-
-function hexPosB(point, s) {
-    return {
-        x: hexShiftX(point.x, s, 1),
-        y: hexShiftShortY(point.y, s, 1)
-    }
-}
-
-function hexPosC(point, s) {
-    return {
-        x: hexShiftX(point.x, s, 2),
-        y: point.y
-    }
-}
-
-function hexPosD(point, s) {
-    return {
-        x: hexShiftX(point.x, s, 2),
-        y: point.y + s
-    }
-}
-
-function hexPosE(point, s) {
-    return {
-        x: hexShiftX(point.x, s, 1),
-        y: hexShiftShortY(point.y + s, s, -1)
-    }
-}
-
-function hexPosF(point, s) {
-    return {
-        x: point.x,
-        y: point.y + s
-    }
-}
-
-function drawHexagonalGrid(sideLength, regionSideLength) {
-    var points = {};
-    var l = sideLength;
-    var s = regionSideLength;
-
-    var xstart = -(l-1);
-    var xend = l-1;
-    for (var x = xstart; x <= xend; x++) {
-        var ystart;
-        if (x >= 0) {
-            ystart = x;
-            yend = (2 * l) - 2;
-        } else {
-            ystart = 0;
-            yend = (2 * l) + x - 2;
-        }
-        for (var y = ystart; y <= yend; y++) {
-            var xpos = Math.sqrt(3) * s * y;
-            xpos = xpos - ((x - xstart) * s * (Math.sqrt(3)/2));
-            var point = {
-                x: xpos,
-                y: (3/2) * s * -x
-            };
-
-            // If you want to remove duplicate points, use this:
-            points[(x      ).toFixed(1) + '_' + (y      ).toFixed(1)] = hexPosA(point, s);
-            points[(x + 0.5).toFixed(1) + '_' + (y + 0.5).toFixed(1)] = hexPosB(point, s);
-            points[(x      ).toFixed(1) + '_' + (y +   1).toFixed(1)] = hexPosC(point, s);
-            points[(x - 0.5).toFixed(1) + '_' + (y + 0.5).toFixed(1)] = hexPosD(point, s);
-            points[(x -   1).toFixed(1) + '_' + (y      ).toFixed(1)] = hexPosE(point, s);
-            points[(x - 0.5).toFixed(1) + '_' + (y - 0.5).toFixed(1)] = hexPosF(point, s);
-            
-            // If you want duplicate points, use this:
-            // points[x + '_' + y + '_a'] = hexPosA(point, s);
-            // points[x + '_' + y + '_b'] = hexPosB(point, s);
-            // points[x + '_' + y + '_c'] = hexPosC(point, s);
-            // points[x + '_' + y + '_d'] = hexPosD(point, s);
-            // points[x + '_' + y + '_e'] = hexPosE(point, s);
-            // points[x + '_' + y + '_f'] = hexPosF(point, s);
-        }
-    }
-
-    // TODO manipulate the points
-
+function drawHexagonalGrid() {
     for (var i = 0; i < Object.keys(points).length; i++) {
         var key = Object.keys(points)[i];
-        var point = points[key];
-        // For now, until we get the createshapepath.js file working
-        // we can just put squares by the intersection
-        var squareSize = 6;
-        drawShape({
-            points: [
-                { x: point.x, y: point.y },
-                { x: point.x, y: point.y + squareSize },
-                { x: point.x + squareSize, y: point.y + squareSize },
-                { x: point.x + squareSize, y: point.y }
-            ],
-            xOffset: 400,
-            yOffset: 600
-        });
-    }
-}
+        var x = parseFloat(key.split(',')[0]);
+        var y = parseFloat(key.split(',')[1]);
 
-/**
- * Given a starting point, this will return a new point that is shifted
- * one column in a hexagonal grid. The grid has flat faces on the sides
- * and pointed corners on the top and bottom. One space would be half
- * the diameter (side to side) of a hexagon in the grid.
- * @param {*} x          : An object with an x and y coordinate.
- * @param {*} sideLength : The length of a side in the hex grid.
- * @param {*} direction  : 1 or -1
- * @return The new coordinates.
- */
-function hexShiftX(x, sideLength, direction) {
-    spaces = spaces || 1;
-    return x + ((Math.sqrt(3) / 2) * sideLength * direction);
-}
+        if (x % 1 === 0 && y % 1 === 0) {
+            var pa = points[(x      ) + ',' + (y      )];
+            var pb = points[(x + 0.5) + ',' + (y + 0.5)];
+            var pc = points[(x      ) + ',' + (y   + 1)];
+            var pd = points[(x - 0.5) + ',' + (y + 0.5)];
+            var pe = points[(x - 1  ) + ',' + (y      )];
+            var pf = points[(x - 0.5) + ',' + (y - 0.5)];
 
-/**
- * Given a starting point, this will return a new point that is shifted
- * one row in a hexagonal grid. The grid has flat faces on the sides
- * and pointed corners on the top and bottom. This shifts the "short" distance
- * from one hexagonal corner  to the next one nearby (not a full sideLength)
- * @param {*} y               : y coordinate
- * @param {*} sideLength      : The length of a side in the hex grid.
- * @param {boolean} direction : -1 or 1
- * @return The new coordinates.
- */
- function hexShiftShortY(y, sideLength, direction) {
-    return y + (0.5 * sideLength * direction * -1);
-}
+            if (pa && pb && pc && pd && pe && pf) {
+                drawShape({
+                    points: [ pa, pb, pc, pd, pe, pf ],
+                    xOffset: 400,
+                    yOffset: 600
+                });
 
-
-function drawSingleHexagon() {
-    var s = toggles.regionSideLength;
-    var testPoint = { x: 300, y: 300 };
-    var testPoints = [
-        hexPosA(testPoint, s),
-        hexPosB(testPoint, s),
-        hexPosC(testPoint, s),
-        hexPosD(testPoint, s),
-        hexPosE(testPoint, s),
-        hexPosF(testPoint, s)
-    ];
-    for (var i = 0; i < testPoints.length; i++) {
-        var point = testPoints[i];
-        var squareSize = 6;
-        drawShape({
-            points: [
-                { x: point.x, y: point.y },
-                { x: point.x, y: point.y + squareSize },
-                { x: point.x + squareSize, y: point.y + squareSize },
-                { x: point.x + squareSize, y: point.y }
-            ],
-            xOffset: 300,
-            yOffset: 300
-        });
+                var newHex = getLayer({ path: ['mapmakertmp', 'Color Fill 1' ] });
+                newHex.name = 'hex' + i;
+            }
+        }
     }
 }
 
@@ -371,21 +233,46 @@ function drawShape(args) {
     lineSubPathArray.entireSubPath = lineArray;
     var myPathItem = doc.pathItems.add("myPath", [lineSubPathArray]);
 
-    var desc88 = new ActionDescriptor();
-    var ref60 = new ActionReference();
-    ref60.putClass(stringIDToTypeID("contentLayer"));
-    desc88.putReference(charIDToTypeID("null"), ref60);
-    var desc89 = new ActionDescriptor();
-    var desc90 = new ActionDescriptor();
-    var desc91 = new ActionDescriptor();
-    desc91.putDouble(charIDToTypeID("Rd  "), 0); // R
-    desc91.putDouble(charIDToTypeID("Grn "), 0); // G
-    desc91.putDouble(charIDToTypeID("Bl  "), 0); // B
-    var id481 = charIDToTypeID("RGBC");
-    desc90.putObject(charIDToTypeID("Clr "), id481, desc91);
-    desc89.putObject(charIDToTypeID("Type"), stringIDToTypeID("solidColorLayer"), desc90);
-    desc88.putObject(charIDToTypeID("Usng"), stringIDToTypeID("contentLayer"), desc89);
-    executeAction(charIDToTypeID("Mk  "), desc88, DialogModes.NO);
+    var desc1 = new ActionDescriptor();
+    var ref1 = new ActionReference();
+    ref1.putClass(stringIDToTypeID("contentLayer"));
+    desc1.putReference(charIDToTypeID('null'), ref1);
+    var desc2 = new ActionDescriptor();
+    var desc3 = new ActionDescriptor();
+    var desc4 = new ActionDescriptor();
+    desc4.putDouble(charIDToTypeID('Rd  '), 255);
+    desc4.putDouble(charIDToTypeID('Grn '), 255);
+    desc4.putDouble(charIDToTypeID('Bl  '), 255);
+    desc3.putObject(charIDToTypeID('Clr '), stringIDToTypeID("RGBColor"), desc4);
+    desc2.putObject(charIDToTypeID('Type'), stringIDToTypeID("solidColorLayer"), desc3);
+    var desc6 = new ActionDescriptor();
+    desc6.putInteger(stringIDToTypeID("strokeStyleVersion"), 2);
+    desc6.putBoolean(stringIDToTypeID("strokeEnabled"), true);
+    desc6.putBoolean(stringIDToTypeID("fillEnabled"), false);
+    desc6.putUnitDouble(stringIDToTypeID("strokeStyleLineWidth"), charIDToTypeID('#Pxl'), 1);
+    desc6.putUnitDouble(stringIDToTypeID("strokeStyleLineDashOffset"), charIDToTypeID('#Pnt'), 0);
+    desc6.putDouble(stringIDToTypeID("strokeStyleMiterLimit"), 100);
+    desc6.putEnumerated(stringIDToTypeID("strokeStyleLineCapType"), stringIDToTypeID("strokeStyleLineCapType"), stringIDToTypeID("strokeStyleButtCap"));
+    desc6.putEnumerated(stringIDToTypeID("strokeStyleLineJoinType"), stringIDToTypeID("strokeStyleLineJoinType"), stringIDToTypeID("strokeStyleMiterJoin"));
+    desc6.putEnumerated(stringIDToTypeID("strokeStyleLineAlignment"), stringIDToTypeID("strokeStyleLineAlignment"), stringIDToTypeID("strokeStyleAlignCenter"));
+    desc6.putBoolean(stringIDToTypeID("strokeStyleScaleLock"), false);
+    desc6.putBoolean(stringIDToTypeID("strokeStyleStrokeAdjust"), false);
+    var list1 = new ActionList();
+    desc6.putList(stringIDToTypeID("strokeStyleLineDashSet"), list1);
+    desc6.putEnumerated(stringIDToTypeID("strokeStyleBlendMode"), charIDToTypeID('BlnM'), charIDToTypeID('Nrml'));
+    desc6.putUnitDouble(stringIDToTypeID("strokeStyleOpacity"), charIDToTypeID('#Prc'), 100);
+    var desc7 = new ActionDescriptor();
+    var desc8 = new ActionDescriptor();
+    desc8.putDouble(charIDToTypeID('Rd  '), 0);
+    desc8.putDouble(charIDToTypeID('Grn '), 0);
+    desc8.putDouble(charIDToTypeID('Bl  '), 0);
+    desc7.putObject(charIDToTypeID('Clr '), stringIDToTypeID("RGBColor"), desc8);
+    desc6.putObject(stringIDToTypeID("strokeStyleContent"), stringIDToTypeID("solidColorLayer"), desc7);
+    desc6.putDouble(stringIDToTypeID("strokeStyleResolution"), 300);
+    desc2.putObject(stringIDToTypeID("strokeStyle"), stringIDToTypeID("strokeStyle"), desc6);
+    desc1.putObject(charIDToTypeID('Usng'), stringIDToTypeID("contentLayer"), desc2);
+    desc1.putInteger(charIDToTypeID('LyrI'), 82);
+    executeAction(charIDToTypeID('Mk  '), desc1, DialogModes.NO);
 
     myPathItem.remove();
 }
