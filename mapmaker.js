@@ -48,8 +48,8 @@ function drawHexagonalGrid() {
             if (pa && pb && pc && pd && pe && pf) {
                 drawShape({
                     points: [ pa, pb, pc, pd, pe, pf ],
-                    xOffset: 400,
-                    yOffset: 600
+                    xOffset: 0,
+                    yOffset: 0
                 });
 
                 var newHex = getLayer({ path: ['mapmakertmp', 'Color Fill 1' ] });
